@@ -154,7 +154,9 @@ def main():
         if uploaded_makeban_file is not None:
             uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
             uploaded_makeban_data = pd.DataFrame(uploaded_makeban_data)
-            open('生产看板.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
+            with open('生产看板.csv', 'w',encoding='utf-8') as f:
+                f.truncate()
+                f.write(uploaded_makeban_data.to_csv())
 if __name__ == "__main__":
     st.set_page_config(
         "蜀益机械生产管理大屏",
