@@ -105,7 +105,7 @@ def main():
                                     aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
                         #with col2:
                             #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            st.text_area(str(name[0]),aa,height=100,label_visibility='collapsed')
                             aaaa = group222[group222['派工人']=='未派工']
                             bbbb = group222[group222['报工合格数（含审批中）']==0]
                             st.progress(1-aaaa.shape[0]/group222.shape[0])
@@ -124,7 +124,7 @@ def main():
                                     aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
                         #with col2:
                             #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            st.text_area(str(name[0]),aa,height=100,label_visibility='collapsed')
                             aaaa = group222[group222['派工人']=='未派工']
                             bbbb = group222[group222['报工合格数（含审批中）']==0]
                             st.progress(1-aaaa.shape[0]/group222.shape[0])
@@ -142,7 +142,7 @@ def main():
                                     aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
                         #with col2:
                             #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            st.text_area(str(name[0]),aa,height=100,label_visibility='collapsed')
                             #st.write(group222)
                             aaaa = group222[group222['派工人']=='未派工']
                             bbbb = group222[group222['报工合格数（含审批中）']==0]
