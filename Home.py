@@ -57,26 +57,109 @@ def main():
 
         work_plan_all_data = get_data(account_selections.split('组')[0],option2)
         work_plan_data = work_plan_all_data.groupby('预计结束时间')
+        baogong_data = pd.read_csv('派工单.csv')
+        baogong_data = baogong_data[['计划单号','工序','派工数量','派工人','报工人','报工合格数（含审批中）']]
+        baogong_data.rename(columns={'计划单号':'生产单号'}, inplace = True)
+        
         if option == '进度图':
+            
+            
             for name,group in work_plan_data:
                 st.subheader(name + '需要完成订单')
-                col1, col2, col3 = st.columns(3)
                 group.sort_values("末道工序-合格数",inplace = True, ascending=False) 
                 group.reset_index()
                 work_plan_group_data = group.reset_index()
-                for index, row in work_plan_group_data.iterrows():
-                    if index%3 == 0:
+                #st.write(work_plan_group_data)
+                col1, col2 = st.columns(2)
+                work_plan_group_data4 = work_plan_group_data.copy()
+                work_plan_group_data2 = work_plan_group_data4['工序'].str.split(',', expand=True)
+                work_plan_group_data2 = work_plan_group_data2.stack()
+                
+                work_plan_group_data2 = work_plan_group_data2.reset_index(level=1, drop=True).rename('工序')
+                #st.write(work_plan_group_data2)  
+                work_plan_group_data_new = work_plan_group_data.drop(['工序'], axis=1).join(work_plan_group_data2)
+
+
+                xxx = pd.merge(work_plan_group_data_new, baogong_data.loc[:, ["生产单号",'工序','派工数量','派工人','报工人','报工合格数（含审批中）']], how='left',on = ['生产单号','工序'])
+                #st.write(xxx.info())
+                xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].fillna(0)
+                xxx['派工人']=xxx['派工人'].fillna('未派工')
+                xxx['报工人']=xxx['报工人'].fillna('未报工')
+                xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].astype('int64')
+                xxx2 = xxx.groupby(['生产单号','名称', '末道工序-合格数','计划数量'])
+                aaa = 0
+                col1, col2, col3 = st.columns(3)
+                for name, group222 in xxx2:
+                    group222.reset_index()
+                    #st.write(aaa)
+                    if aaa%3 == 0:
                         with col1:
-                            st.info(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
-                            st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
-                    elif index%3 == 1:
+                            #st.write(group222.index)
+                            st.info(name[1]+'\n\n'+ '【' +'计划数:'+ str(name[3])+'】'+ '【'+ '末道工序-合格数:'+str(name[2])+'】')
+                            aa = ''
+                            for index, row in group222.iterrows():
+                                if str(row['派工人']) == '未派工':
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '】'+ '【' + str(row['报工人'])  + '】'+ '\n\n' 
+                                else:
+                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
+                        #with col2:
+                            #for i in aa:
+                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            aaaa = group222[group222['派工人']=='未派工']
+                            bbbb = group222[group222['报工合格数（含审批中）']==0]
+                            st.progress(1-aaaa.shape[0]/group222.shape[0])
+                            st.progress(1-bbbb.shape[0]/group222.shape[0])
+                    if aaa%3 == 1:
                         with col2:
-                            st.info(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
-                            st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
-                    else:
+                            #st.write('<font color=>THIS TEXT WILL BE RED</font>')
+                            #st.write(group222.index)
+                            st.info(name[1]+'\n\n'+ '【' +'计划数:'+ str(name[3])+'】'+ '【'+ '末道工序-合格数:'+str(name[2])+'】')
+                            aa = ''
+                            for index, row in group222.iterrows():
+                                if str(row['派工人']) == '未派工':
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '】'+ '【' + str(row['报工人'])  + '】'+ '\n\n' 
+                                else:
+                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
+                        #with col2:
+                            #for i in aa:
+                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            aaaa = group222[group222['派工人']=='未派工']
+                            bbbb = group222[group222['报工合格数（含审批中）']==0]
+                            st.progress(1-aaaa.shape[0]/group222.shape[0])
+                            st.progress(1-bbbb.shape[0]/group222.shape[0])
+                    if aaa%3 == 2:
                         with col3:
-                            st.info(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
-                            st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
+                            #st.write(group222.index)
+                            st.info(name[1]+'\n\n'+ '【' +'计划数:'+ str(name[3])+'】'+ '【'+ '末道工序-合格数:'+str(name[2])+'】')
+                            aa = ''
+                            for index, row in group222.iterrows():
+                                if str(row['派工人']) == '未派工':
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '】'+ '【' + str(row['报工人'])  + '】'+ '\n\n' 
+                                else:
+                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                    aa = aa + '【' + row['工序']+ '】'  + '【' + str(row['派工人'])  + '派'  + str(row['派工数量']) + '】'  + '【' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + '】'+ '\n\n' 
+                        #with col2:
+                            #for i in aa:
+                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                            #st.write(group222)
+                            aaaa = group222[group222['派工人']=='未派工']
+                            bbbb = group222[group222['报工合格数（含审批中）']==0]
+                            st.progress(1-aaaa.shape[0]/group222.shape[0])
+                            st.progress(1-bbbb.shape[0]/group222.shape[0])
+                    aaa = aaa + 1
+                #with containss:
+                    #for index, row in work_plan_group_data.iterrows():
+                        #with col1:
+                            #st.write('pl')
+                            #st.write(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
+                            #st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
+                        #with col2:
+                            #for name,group in xxx2:
+                            #st.write(name)
+                                #st.text(group[['工序','派工数量','派工人','报工人','报工合格数（含审批中）']])
+
         elif option == '明细表格':
             for name,group in work_plan_data:
                 with st.expander(name):
@@ -156,6 +239,8 @@ def main():
             with open('生产看板.csv', 'w',encoding='utf-8') as f:
                 f.truncate()
                 f.write(uploaded_makeban_data.to_csv())
+
+
 if __name__ == "__main__":
     st.set_page_config(
         "蜀益机械生产管理大屏",
