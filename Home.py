@@ -15,7 +15,6 @@ def GetMuch(x):
     if m:
         return ''.join(set(m))
 
-@st.experimental_memo
 def get_data(option2, option3):
     #读取生产计划单并对应到班组
     work_plan = pd.read_csv('生产计划单.csv')
