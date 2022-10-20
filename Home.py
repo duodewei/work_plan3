@@ -132,14 +132,14 @@ def main():
         if uploaded_warehouse_file is not None:
             uploaded_warehouse = pd.read_excel(uploaded_warehouse_file)
             uploaded_warehouse = pd.DataFrame(uploaded_warehouse)
-            with open('生产计划.csv', 'w',encoding='utf-8') as f:
-                f.truncate()
-                f.write(uploaded_plan.to_csv())
+            open('仓储看板.csv', 'w',encoding='utf-8').write(uploaded_warehouse.to_csv())
         uploaded_plan_file = st.file_uploader("请上传最新版生产计划单")
         if uploaded_plan_file is not None:
             uploaded_plan = pd.read_excel(uploaded_plan_file,header = 1)
             uploaded_plan = pd.DataFrame(uploaded_plan)
-            open('生产计划.csv', 'w',encoding='utf-8').write(uploaded_plan.to_csv())
+            with open('生产计划单.csv', 'w',encoding='utf-8') as f:
+                f.truncate()
+                f.write(uploaded_plan.to_csv())
         uploaded_baog_file = st.file_uploader("请上传最新版报工信息单")
         if uploaded_baog_file is not None:
             uploaded_baog_data = pd.read_excel(uploaded_baog_file, header=1, index_col=False)
