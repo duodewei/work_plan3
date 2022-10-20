@@ -56,7 +56,6 @@ def main():
             option2 = st.selectbox('选择查看状态',('全部','进行中', '已完成'))
 
         work_plan_all_data = get_data(account_selections.split('组')[0],option2)
-
         work_plan_data = work_plan_all_data.groupby('预计结束时间')
         if option == '进度图':
             for name,group in work_plan_data:
@@ -147,7 +146,15 @@ def main():
         uploaded_makeban_file = st.file_uploader("请上传最新版生产看板")
         if uploaded_makeban_file is not None:
             uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
-            uploaded_makeban_data.to_csv("生产看板.csv",index=False)
+            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
+            uploaded_makeban_data = pd.DataFrame(uploaded_makeban_data)
+            open('生产看板.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
+            xx = pd.read_csv('生产看板.csv')
+            st.write(xx)
+            #with open(filename, 'wb') as f: 
+                #f.write(filebytes)
+            #uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
+            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
 if __name__ == "__main__":
     st.set_page_config(
         "蜀益机械生产管理大屏",
