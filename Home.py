@@ -168,6 +168,8 @@ def main():
                 #f.write(filebytes)
             #uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
             #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
+        uploaded_makeban_data2 = pd.read_excel('生产看板2.csv', index_col=False)
+        st.write(uploaded_makeban_data2)
 if __name__ == "__main__":
     st.set_page_config(
         "蜀益机械生产管理大屏",
