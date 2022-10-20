@@ -131,45 +131,28 @@ def main():
         uploaded_warehouse_file = st.file_uploader("请上传最新版仓储看板")
         if uploaded_warehouse_file is not None:
             uploaded_warehouse = pd.read_excel(uploaded_warehouse_file)
-            uploaded_warehouse.to_csv("仓储看板.csv")
+            uploaded_warehouse = pd.DataFrame(uploaded_warehouse)
+            open('仓储看板.csv', 'w',encoding='utf-8').write(uploaded_warehouse.to_csv())
         uploaded_plan_file = st.file_uploader("请上传最新版生产计划单")
         if uploaded_plan_file is not None:
             uploaded_plan = pd.read_excel(uploaded_plan_file,header = 1)
-            uploaded_plan.to_csv("生产计划单.csv")
+            uploaded_plan = pd.DataFrame(uploaded_plan)
+            open('生产计划.csv', 'w',encoding='utf-8').write(uploaded_plan.to_csv())
         uploaded_baog_file = st.file_uploader("请上传最新版报工信息单")
         if uploaded_baog_file is not None:
             uploaded_baog_data = pd.read_excel(uploaded_baog_file, header=1, index_col=False)
-            uploaded_baog_data.to_csv("报工单.csv",index=False)
+            uploaded_baog_data = pd.DataFrame(uploaded_baog_data)
+            open('报工.csv', 'w',encoding='utf-8').write(uploaded_baog_data.to_csv())
         uploaded_paig_file = st.file_uploader("请上传最新版派工单")
         if uploaded_paig_file is not None:
             uploaded_paig_data = pd.read_excel(uploaded_paig_file, index_col=False)
-            uploaded_paig_data.to_csv("派工单.csv",index=False)
+            uploaded_paig_data = pd.DataFrame(uploaded_paig_data)
+            open('派工单.csv', 'w',encoding='utf-8').write(uploaded_paig_data.to_csv())
         uploaded_makeban_file = st.file_uploader("请上传最新版生产看板")
         if uploaded_makeban_file is not None:
             uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
-            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
             uploaded_makeban_data = pd.DataFrame(uploaded_makeban_data)
             open('生产看板.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
-            xx = pd.read_csv('生产看板.csv')
-            st.write(xx)
-            #with open(filename, 'wb') as f: 
-                #f.write(filebytes)
-            #uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
-            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
-        uploaded_makeban_file2 = st.file_uploader("请上传最新版生产看板2")
-        if uploaded_makeban_file2 is not None:
-            uploaded_makeban_data2 = pd.read_excel(uploaded_makeban_file2, index_col=False)
-            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
-            uploaded_makeban_data2 = pd.DataFrame(uploaded_makeban_data2)
-            open('生产看板2.csv', 'w',encoding='utf-8').write(uploaded_makeban_data2.to_csv())
-            xx = pd.read_csv('生产看板2.csv')
-            st.write(xx)
-            #with open(filename, 'wb') as f: 
-                #f.write(filebytes)
-            #uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
-            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
-        uploaded_makeban_data2 = pd.read_csv('生产看板2.csv', index_col=False)
-        st.write(uploaded_makeban_data2)
 if __name__ == "__main__":
     st.set_page_config(
         "蜀益机械生产管理大屏",
