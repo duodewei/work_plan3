@@ -160,7 +160,7 @@ def main():
         if uploaded_makeban_file2 is not None:
             uploaded_makeban_data2 = pd.read_excel(uploaded_makeban_file2, index_col=False)
             #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
-            uploaded_makeban_data2 = pd.DataFrame(uploaded_makeban_data)
+            uploaded_makeban_data2 = pd.DataFrame(uploaded_makeban_data2)
             open('生产看板2.csv', 'w',encoding='utf-8').write(uploaded_makeban_data2.to_csv())
             xx = pd.read_csv('生产看板2.csv')
             st.write(xx)
