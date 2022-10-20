@@ -82,6 +82,7 @@ def main():
 
                 xxx = pd.merge(work_plan_group_data_new, baogong_data.loc[:, ["生产单号",'工序','派工数量','派工人','报工人','报工合格数（含审批中）']], how='left',on = ['生产单号','工序'])
                 #st.write(xxx.info())
+                xxx = xxx[xxx['工序'].str.contains(account_selections2)]
                 xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].fillna(0)
                 xxx['派工人']=xxx['派工人'].fillna('未派工')
                 xxx['报工人']=xxx['报工人'].fillna('未报工')
