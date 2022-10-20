@@ -148,7 +148,7 @@ def main():
             uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
             #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
             uploaded_makeban_data = pd.DataFrame(uploaded_makeban_data)
-            open('生产看板.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
+            open('生产看板2.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
             xx = pd.read_csv('生产看板.csv')
             st.write(xx)
             #with open(filename, 'wb') as f: 
