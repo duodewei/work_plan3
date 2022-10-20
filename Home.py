@@ -6,6 +6,7 @@ from st_aggrid import AgGrid
 import pandas as pd
 import re
 
+pub_sheet_url = 'https://docs.google.com/spreadsheets/d/1z2lMhtNqcnBQklOVeldK0fjBdfMlm4-Gn8PQ5GoX0zU/edit?usp=sharing'
 
 @st.cache
 def GetMuch(x):
@@ -14,7 +15,7 @@ def GetMuch(x):
     if m:
         return ''.join(set(m))
 
-@st.cache
+@st.experimental_memo
 def get_data(option2, option3):
     #读取生产计划单并对应到班组
     work_plan = pd.read_csv('生产计划单.csv')
@@ -148,8 +149,20 @@ def main():
             uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
             #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
             uploaded_makeban_data = pd.DataFrame(uploaded_makeban_data)
-            open('生产看板2.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
+            open('生产看板.csv', 'w',encoding='utf-8').write(uploaded_makeban_data.to_csv())
             xx = pd.read_csv('生产看板.csv')
+            st.write(xx)
+            #with open(filename, 'wb') as f: 
+                #f.write(filebytes)
+            #uploaded_makeban_data = pd.read_excel(uploaded_makeban_file, index_col=False)
+            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
+        uploaded_makeban_file2 = st.file_uploader("请上传最新版生产看板2")
+        if uploaded_makeban_file2 is not None:
+            uploaded_makeban_data2 = pd.read_excel(uploaded_makeban_file2, index_col=False)
+            #uploaded_makeban_data.to_csv("生产看板.csv",index=False)
+            uploaded_makeban_data2 = pd.DataFrame(uploaded_makeban_data)
+            open('生产看板2.csv', 'w',encoding='utf-8').write(uploaded_makeban_data2.to_csv())
+            xx = pd.read_csv('生产看板2.csv')
             st.write(xx)
             #with open(filename, 'wb') as f: 
                 #f.write(filebytes)
