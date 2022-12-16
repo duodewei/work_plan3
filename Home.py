@@ -6,7 +6,7 @@ from st_aggrid import AgGrid
 import pandas as pd
 import re
 
-pub_sheet_url = 'https://docs.google.com/spreadsheets/d/1z2lMhtNqcnBQklOVeldK0fjBdfMlm4-Gn8PQ5GoX0zU/edit?usp=sharing'
+#pub_sheet_url = 'https://docs.google.com/spreadsheets/d/1z2lMhtNqcnBQklOVeldK0fjBdfMlm4-Gn8PQ5GoX0zU/edit?usp=sharing'
 
 @st.cache
 def GetMuch(x):
@@ -26,6 +26,7 @@ def get_data(option2, option3):
     work_act = pd.read_csv('生产看板.csv')
     work_act = work_act[['生产单号','物料编号','物料名称','规格','计划数量','末道工序-合格数','生产已入库']]
 
+
     #关联生产计划单和生产看板
     work_plan_data = pd.merge(work_plan,work_act.loc[:, ["生产单号",'末道工序-合格数','生产已入库']],how='left',on = '生产单号')
 
@@ -41,175 +42,245 @@ def get_data(option2, option3):
 
 def main():
     st.sidebar.subheader("蜀益机械生产计划概览")
-    accounts = ['A组','B组','C组','D组','E组','J组','基础资料']
+    accounts = ['A组','B组','C组','D组','E组','J组']
     account_selections = st.sidebar.selectbox(
         "选择查看类型", options=accounts
     )
-    if account_selections in ['A组','B组','C组','D组','E组','J组']:
-        st.header(" %s 生产计划执行概况"%account_selections)
-        st.info('十一月份钉钉生产报工应用开放数据接口，上线后会将看板转换为自动同步模式！')
+    account_selections2 = st.sidebar.selectbox(
+        "选择查看类别", ['生产计划','报工']
+    )
+    account_selections3 = st.sidebar.selectbox(
+        "选择查看类别", ['首页','基础资料']
+    )
+    if account_selections3 == '首页':
+        if account_selections2 == '生产计划':
+            if account_selections in ['A组','B组','C组','D组','E组','J组']:
+                st.header(" %s 生产计划执行概况"%account_selections)
+                st.info('十一月份钉钉生产报工应用开放数据接口，上线后会将看板转换为自动同步模式！')
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            option = st.selectbox('选择查看模式',('进度图', '明细表格','文字版','生产概况绩效指标'))
-        with col2:
-            option2 = st.selectbox('选择查看状态',('全部','进行中', '已完成'))
-
-        work_plan_all_data = get_data(account_selections.split('组')[0],option2)
-        work_plan_data = work_plan_all_data.groupby('预计结束时间')
-        baogong_data = pd.read_csv('派工单.csv')
-        baogong_data = baogong_data[['计划单号','工序','派工数量','派工人','报工人','报工合格数（含审批中）']]
-        baogong_data.rename(columns={'计划单号':'生产单号'}, inplace = True)
-        
-        if option == '进度图':
-            
-            
-            for name,group in work_plan_data:
-                st.subheader(name + '需要完成订单')
-                group.sort_values("末道工序-合格数",inplace = True, ascending=False) 
-                group.reset_index()
-                work_plan_group_data = group.reset_index()
-                #st.write(work_plan_group_data)
-                col1, col2 = st.columns(2)
-                work_plan_group_data4 = work_plan_group_data.copy()
-                work_plan_group_data2 = work_plan_group_data4['工序'].str.split(',', expand=True)
-                work_plan_group_data2 = work_plan_group_data2.stack()
-                
-                work_plan_group_data2 = work_plan_group_data2.reset_index(level=1, drop=True).rename('工序')
-                #st.write(work_plan_group_data2)  
-                work_plan_group_data_new = work_plan_group_data.drop(['工序'], axis=1).join(work_plan_group_data2)
-
-
-                xxx = pd.merge(work_plan_group_data_new, baogong_data.loc[:, ["生产单号",'工序','派工数量','派工人','报工人','报工合格数（含审批中）']], how='left',on = ['生产单号','工序'])
-                #st.write(xxx.info())
-                account_selections2 = account_selections.split('组')[0]
-                xxx = xxx[xxx['工序'].str.contains(account_selections2)]
-                xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].fillna(0)
-                xxx['派工人']=xxx['派工人'].fillna('未派工')
-                xxx['报工人']=xxx['报工人'].fillna('未报工')
-                xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].astype('int64')
-                xxx2 = xxx.groupby(['生产单号','名称', '末道工序-合格数','计划数量'])
-                aaa = 0
                 col1, col2, col3 = st.columns(3)
-                for name, group222 in xxx2:
-                    group222.reset_index()
-                    #st.write(aaa)
-                    if aaa%3 == 0:
-                        with col1:
-                            #st.write(group222.index)
-                            st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
-                            aa = ''
-                            for index, row in group222.iterrows():
-                                if str(row['派工人']) == '未派工':
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
-                                else:
-                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
-                        #with col2:
-                            #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
-                            aaaa = group222[group222['派工人']=='未派工']
-                            bbbb = group222[group222['报工合格数（含审批中）']==0]
-                            st.progress(1-aaaa.shape[0]/group222.shape[0])
-                            st.progress(1-bbbb.shape[0]/group222.shape[0])
-                    if aaa%3 == 1:
-                        with col2:
-                            #st.write('<font color=>THIS TEXT WILL BE RED</font>')
-                            #st.write(group222.index)
-                            st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
-                            aa = ''
-                            for index, row in group222.iterrows():
-                                if str(row['派工人']) == '未派工':
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
-                                else:
-                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
-                        #with col2:
-                            #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
-                            aaaa = group222[group222['派工人']=='未派工']
-                            bbbb = group222[group222['报工合格数（含审批中）']==0]
-                            st.progress(1-aaaa.shape[0]/group222.shape[0])
-                            st.progress(1-bbbb.shape[0]/group222.shape[0])
-                    if aaa%3 == 2:
-                        with col3:
-                            #st.write(group222.index)
-                            st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
-                            aa = ''
-                            for index, row in group222.iterrows():
-                                if str(row['派工人']) == '未派工':
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
-                                else:
-                                    #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
-                                    aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
-                        #with col2:
-                            #for i in aa:
-                            st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
-                            #st.write(group222)
-                            aaaa = group222[group222['派工人']=='未派工']
-                            bbbb = group222[group222['报工合格数（含审批中）']==0]
-                            st.progress(1-aaaa.shape[0]/group222.shape[0])
-                            st.progress(1-bbbb.shape[0]/group222.shape[0])
-                    aaa = aaa + 1
-                #with containss:
-                    #for index, row in work_plan_group_data.iterrows():
-                        #with col1:
-                            #st.write('pl')
-                            #st.write(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
-                            #st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
-                        #with col2:
-                            #for name,group in xxx2:
-                            #st.write(name)
-                                #st.text(group[['工序','派工数量','派工人','报工人','报工合格数（含审批中）']])
+                with col1:
+                    option = st.selectbox('选择查看模式',('进度图', '明细表格','文字版','生产概况绩效指标'))
+                with col2:
+                    option2 = st.selectbox('选择查看状态',('进行中','全部', '已完成'))
 
-        elif option == '明细表格':
-            for name,group in work_plan_data:
-                with st.expander(name):
-                    AAA = pd.DataFrame(group)
-                    AgGrid(AAA)
-        elif option == '文字版':
-            for name,group in work_plan_data:
-                for index, row in group.iterrows():
-                    st.error(name+'日需要完成@'+row['名称']+'@计划数:'+ str(row['计划数量'])+ '@末道工序-合格数:'+str(int(row['末道工序-合格数'])))
-        else:
-            st.write('----')
-            today=datetime.date.today()
-            yuqi = work_plan_all_data[work_plan_all_data['预计结束时间'] < str(today)]
-            col1, col2, col3,col4 = st.columns(4)
-            with col1:
-                st.metric(
-                    "总订单数",
-                    f"{work_plan_all_data.shape[0]}",
-                    20,
-                )
-            with col2:
-                st.metric(
-                    "待产订单数",
-                    f"{yuqi.shape[0]}",
-                    -20,
-                )
-            with col3:
-                st.metric(
-                    "逾期订单数",
-                    f"{yuqi.shape[0]}",
-                    -20,
-                )
-            with col4:
-                if work_plan_all_data.shape[0] != 0:
-                    xx = yuqi.shape[0]/work_plan_all_data.shape[0]
+                work_plan_all_data = get_data(account_selections.split('组')[0],option2)
+                work_plan_data = work_plan_all_data.groupby('预计结束时间')
+                baogong_data = pd.read_csv('派工单.csv')
+                baogong_data = baogong_data[['计划单号','工序','派工数量','派工人','报工人','报工合格数（含审批中）']]
+                baogong_data.rename(columns={'计划单号':'生产单号'}, inplace = True)
+                
+                if option == '进度图':
+                    for name,group in work_plan_data:
+                        st.subheader(name + '需要完成订单')
+                        group.sort_values("末道工序-合格数",inplace = True, ascending=False) 
+                        group.reset_index()
+                        work_plan_group_data = group.reset_index()
+                        #st.write(work_plan_group_data)
+                        col1, col2 = st.columns(2)
+                        work_plan_group_data4 = work_plan_group_data.copy()
+                        work_plan_group_data2 = work_plan_group_data4['工序'].str.split(',', expand=True)
+                        work_plan_group_data2 = work_plan_group_data2.stack()
+                        
+                        work_plan_group_data2 = work_plan_group_data2.reset_index(level=1, drop=True).rename('工序')
+                        #st.write(work_plan_group_data2)  
+                        work_plan_group_data_new = work_plan_group_data.drop(['工序'], axis=1).join(work_plan_group_data2)
+
+
+                        xxx = pd.merge(work_plan_group_data_new, baogong_data.loc[:, ["生产单号",'工序','派工数量','派工人','报工人','报工合格数（含审批中）']], how='left',on = ['生产单号','工序'])
+                        #st.write(xxx.info())
+                        account_selections2 = account_selections.split('组')[0]
+                        xxx = xxx[xxx['工序'].str.contains(account_selections2)]
+                        xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].fillna(0)
+                        xxx['派工人']=xxx['派工人'].fillna('未派工')
+                        xxx['报工人']=xxx['报工人'].fillna('未报工')
+                        xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']]=xxx[['末道工序-合格数','报工合格数（含审批中）','派工数量']].astype('int64')
+                        xxx2 = xxx.groupby(['生产单号','名称', '末道工序-合格数','计划数量'])
+                        aaa = 0
+                        col1, col2, col3 = st.columns(3)
+                        for name, group222 in xxx2:
+                            group222.reset_index()
+                            #st.write(aaa)
+                            if aaa%3 == 0:
+                                with col1:
+                                    #st.write(group222.index)
+                                    st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
+                                    aa = ''
+                                    for index, row in group222.iterrows():
+                                        if str(row['派工人']) == '未派工':
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
+                                        else:
+                                            #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
+                                #with col2:
+                                    #for i in aa:
+                                    st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                                    aaaa = group222[group222['派工人']=='未派工']
+                                    bbbb = group222[group222['报工合格数（含审批中）']==0]
+                                    st.progress(1-aaaa.shape[0]/group222.shape[0])
+                                    st.progress(1-bbbb.shape[0]/group222.shape[0])
+                            if aaa%3 == 1:
+                                with col2:
+                                    #st.write('<font color=>THIS TEXT WILL BE RED</font>')
+                                    #st.write(group222.index)
+                                    st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
+                                    aa = ''
+                                    for index, row in group222.iterrows():
+                                        if str(row['派工人']) == '未派工':
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
+                                        else:
+                                            #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
+                                #with col2:
+                                    #for i in aa:
+                                    st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                                    aaaa = group222[group222['派工人']=='未派工']
+                                    bbbb = group222[group222['报工合格数（含审批中）']==0]
+                                    st.progress(1-aaaa.shape[0]/group222.shape[0])
+                                    st.progress(1-bbbb.shape[0]/group222.shape[0])
+                            if aaa%3 == 2:
+                                with col3:
+                                    #st.write(group222.index)
+                                    st.info(name[1]+'\n\n'+ '[' +'计划数:'+ str(name[3])+']'+ '['+ '末道工序-合格数:'+str(name[2])+']')
+                                    aa = ''
+                                    for index, row in group222.iterrows():
+                                        if str(row['派工人']) == '未派工':
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + ']'+ '[' + str(row['报工人'])  + ']'+ '\n\n' 
+                                        else:
+                                            #aa.append([row['工序']+'派工数:'+ str(row['派工数量']) + '报工数:' + str(row['报工合格数（含审批中）']) +'\n\n'])
+                                            aa = aa + '[' + row['工序']+ ']'  + '[' + str(row['派工人'])  + '派'  + str(row['派工数量']) + ']'  + '[' + str(row['报工人']) +  '报' + str(row['报工合格数（含审批中）']) + ']'+ '\n\n' 
+                                #with col2:
+                                    #for i in aa:
+                                    st.text_area(str(name[0]),aa,label_visibility='collapsed',height=100)
+                                    #st.write(group222)
+                                    aaaa = group222[group222['派工人']=='未派工']
+                                    bbbb = group222[group222['报工合格数（含审批中）']==0]
+                                    st.progress(1-aaaa.shape[0]/group222.shape[0])
+                                    st.progress(1-bbbb.shape[0]/group222.shape[0])
+                            aaa = aaa + 1
+                        #with containss:
+                            #for index, row in work_plan_group_data.iterrows():
+                                #with col1:
+                                    #st.write('pl')
+                                    #st.write(row['名称']+'\n\n'+'计划数:'+ str(row['计划数量'])+'\n\n'+ '末道工序-合格数:'+str(int(row['末道工序-合格数'])))
+                                    #st.progress(row['末道工序-合格数']/row['计划数量'] if row['末道工序-合格数']/row['计划数量'] <= 1 else 100)
+                                #with col2:
+                                    #for name,group in xxx2:
+                                    #st.write(name)
+                                        #st.text(group[['工序','派工数量','派工人','报工人','报工合格数（含审批中）']])
+
+                elif option == '明细表格':
+                    for name,group in work_plan_data:
+                        with st.expander(name):
+                            AAA = pd.DataFrame(group)
+                            AgGrid(AAA)
+                elif option == '文字版':
+                    for name,group in work_plan_data:
+                        for index, row in group.iterrows():
+                            st.error(name+'日需要完成@'+row['名称']+'@计划数:'+ str(row['计划数量'])+ '@末道工序-合格数:'+str(int(row['末道工序-合格数'])))
                 else:
-                    xx=0
-                st.metric(
-                    "逾期率",
-                    f"{xx:.2%}",
-                    -20,
-                )
-            st.write('----')
-            result1 = pd.pivot_table(work_plan_all_data,index='预计结束时间' , values = ['生产单号'] , aggfunc='count')
-            chart_data = pd.DataFrame(result1)
-            st.bar_chart(chart_data,width = 500,height=500)
+                    st.write('----')
+                    today=datetime.date.today()
+                    yuqi = work_plan_all_data[work_plan_all_data['预计结束时间'] < str(today)]
+                    col1, col2, col3,col4 = st.columns(4)
+                    with col1:
+                        st.metric(
+                            "总订单数",
+                            f"{work_plan_all_data.shape[0]}",
+                            20,
+                        )
+                    with col2:
+                        st.metric(
+                            "待产订单数",
+                            f"{yuqi.shape[0]}",
+                            -20,
+                        )
+                    with col3:
+                        st.metric(
+                            "逾期订单数",
+                            f"{yuqi.shape[0]}",
+                            -20,
+                        )
+                    with col4:
+                        if work_plan_all_data.shape[0] != 0:
+                            xx = yuqi.shape[0]/work_plan_all_data.shape[0]
+                        else:
+                            xx=0
+                        st.metric(
+                            "逾期率",
+                            f"{xx:.2%}",
+                            -20,
+                        )
+                    st.write('----')
+                    result1 = pd.pivot_table(work_plan_all_data,index='预计结束时间' , values = ['生产单号'] , aggfunc='count')
+                    chart_data = pd.DataFrame(result1)
+                    st.bar_chart(chart_data,width = 500,height=500)
+        elif account_selections2 == '报工':
+            if account_selections in ['A组','B组','C组','D组','E组','J组']:
 
-    elif account_selections == '基础资料':
+                st.header(" %s 报工执行概况"%account_selections)
+                st.info('十一月份钉钉生产报工应用开放数据接口，上线后会将看板转换为自动同步模式！')
+
+                col1, col2, col3 = st.columns(3)
+
+                #读取报工看板
+                baogong = pd.read_csv('报工.csv')
+                baogong_data = baogong[['物料名称','工序名','本次合格数量','不合格总数','报工人','是否需要收货','审批结果','审批状态','创建时间']]
+                baogong_data['组别'] = baogong_data['工序名'].apply(lambda x:x[0])
+                baogong_data2 = baogong_data[baogong_data['组别'].str.contains(account_selections.split('组')[0])]
+
+                renyuan_data = pd.read_csv('人员名单.csv')
+                renyuan_data2 = renyuan_data[renyuan_data['部门'].str.contains(account_selections.split('组')[0])]
+                #st.write(renyuan_data2)
+
+                with col1:
+                    option2 = st.selectbox('选择查看模式',['按天','按月'])
+                if option2 == '按月':
+                    baogong_data2['创建时间'] = baogong_data2['创建时间'].apply(lambda x:x[0:7])
+                    time_diff = baogong_data2['创建时间'].unique()
+                    with col2:
+                        option = st.selectbox('选择查看时间',time_diff)
+                    baogong_data3 = baogong_data2[baogong_data2['创建时间']==option]
+                    baogong_data3.rename(columns={'报工人':'姓名'}, inplace = True)
+                    xxx = pd.merge(renyuan_data2, baogong_data3.loc[:, ["物料名称",'工序名','本次合格数量','不合格总数','姓名','是否需要收货','审批结果','审批状态','创建时间']], how='left',on = ['姓名'])
+                    
+                    #ccc = xxx['姓名'].count()
+                    dd = xxx['姓名'].value_counts()
+                    ddd = dd.reset_index()
+                    ddd.rename(columns={'姓名': '次数'},inplace=True)
+                    ddd.rename(columns={'index': '姓名'},inplace=True)
+                    
+                    xxx = pd.merge(xxx, ddd, how='left',on = ['姓名'])
+                    xxx.sort_values("次数",inplace = True, ascending=True) 
+                    #st.write(xxx)
+                    aaa_list = xxx['姓名'].unique()
+                    col1, col2, col3 = st.columns(3)
+                    for xx in aaa_list:
+                        xxx2 = xxx[xxx['姓名']==xx]
+                        
+                        if xxx2.shape[0] == 1 and xxx2['创建时间'].isnull().any():
+                            ddd = xx + ',该员工本月未报工'
+                            st.info(ddd)
+                        else:
+                            ddd = xx + ',该员工本月报工' + str(xxx2.shape[0]) + '次'
+                            st.info(ddd)
+                        if xxx2['创建时间'].isnull().any():
+                            ccc = '该员工未报工'
+                        else:
+                            ccc = ''
+                            for index, row in xxx2.iterrows():
+                                ccc = ccc + '[' + str(row['创建时间'])+ ']'  + '[' + str(row['物料名称'])  + ']'+ '[' + str(row['工序名'])  + ']'+ "==" +str(row['本次合格数量']) +'\n\n' 
+                            #st.write(ccc)
+                        st.text_area(xx,ccc,label_visibility='collapsed',height=100)
+                    #st.write(xxx)
+                else:
+                    baogong_data2['创建时间'] = baogong_data2['创建时间'].apply(lambda x:x[0:10])
+                    time_diff = baogong_data2['创建时间'].unique()
+                    with col2:
+                        option = st.selectbox('选择查看时间',time_diff)
+                    baogong_data3 = baogong_data2[baogong_data2['创建时间']==option]
+                    AgGrid(baogong_data3)   
+    elif account_selections3 == '基础资料':
         st.header("蜀益机械仓储看板概况")
         st.info('十一月份钉钉生产报工应用开放数据接口，上线后会将看板转换为自动同步模式！')
         uploaded_warehouse_file = st.file_uploader("请上传最新版仓储看板")
@@ -241,6 +312,13 @@ def main():
             with open('生产看板.csv', 'w',encoding='utf-8') as f:
                 f.truncate()
                 f.write(uploaded_makeban_data.to_csv())
+        renyuan = st.file_uploader("请上传最新版人员名单")
+        if renyuan is not None:
+            renyuan_data = pd.read_excel(renyuan, index_col=False)
+            renyuan_data = pd.DataFrame(renyuan_data)
+            with open('人员名单.csv', 'w',encoding='utf-8') as f:
+                f.truncate()
+                f.write(renyuan_data.to_csv())
 
 
 if __name__ == "__main__":
